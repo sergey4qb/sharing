@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"log"
@@ -24,32 +25,62 @@ func NewRedis(store *redis.Client, duration time.Duration) *Redis {
 
 func (r *Redis) Create(user models.User) error {
 	fmt.Println("createUserRedis")
+	exist,err := r.Exists(string(user.ID)).Result()
+	if err != nil {
+		return err
+	}
+	if exist > 0{
+		return errors.New("user already exist")
+	}
 	js, jserr:= json.Marshal(user)
 	if jserr != nil {
 		log.Fatal(jserr)
 	}
-	err := r.Set(string(user.ID), js, r.exp)
-	if err != nil {
-		return err.Err()
+	set := r.Set(string(user.ID), js, r.exp)
+	if set.Err() != nil {
+		return set.Err()
 	}
 	return nil
 }
 
 func (r *Redis) GetUser(id int) ([]byte, error) {
+	fmt.Println("get result")
 	result, err := r.Get(string(id)).Result()
 	if err != nil {
 		return []byte{}, err
 	}
-	fmt.Println(result, "get result")
 
 	return []byte(result), nil
 }
 
-func (r *Redis) Update(data []byte) error {
-	panic("implement me")
+func (r *Redis) Update(id int, data []byte) error {
+	fmt.Println("update")
+	exist,err := r.Exists(string(id)).Result()
+	if err != nil {
+		return err
+	}
+	if exist == 0{
+		return errors.New("user doesn't exist")
+	}
+	getSet := r.GetSet(string(id), data)
+	if getSet.Err() != nil {
+		return getSet.Err()
+	}
+	return nil
 }
 
-func (r *Redis) Delete(id int) (string, error) {
-	panic("implement me")
+func (r *Redis) Delete(id int) error {
+	exist,err := r.Exists(string(id)).Result()
+	if err != nil {
+		return err
+	}
+	if exist == 0{
+		return errors.New("user doesn't exist")
+	}
+	del := r.Del(string(id))
+	if del.Err() != nil {
+		return del.Err()
+	}
+	return nil
 }
 

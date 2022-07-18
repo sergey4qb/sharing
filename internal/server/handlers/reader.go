@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"log"
 	"tr_redis_ws/internal/models"
 	"tr_redis_ws/internal/storage"
 )
@@ -23,7 +24,6 @@ func NewReader(conn *websocket.Conn, redis *storage.Redis) *Reader {
 }
 
 func (r *Reader) Read() error {
-	//ws_user := new(models.User)
 	req := new(models.Request)
 	for {
 		messageType, data, err := r.conn.ReadMessage()
@@ -38,25 +38,38 @@ func (r *Reader) Read() error {
 		case 1:
 			err := r.Create(req.Data[0])
 			if err != nil {
-				return err
-			}
-			if err := r.conn.WriteMessage(messageType, data); err != nil {
-				return err
+				if err := r.conn.WriteMessage(messageType, []byte(err.Error())); err != nil {
+					log.Println(err)
+				}
 			}
 
 		case 2:
-			fmt.Println("case 2")
 			user, err := r.GetUser(req.Data[0].ID)
 			if err != nil {
+				if err:= r.conn.WriteMessage(messageType, []byte(err.Error())); err != nil {
+					log.Println(err)
+				}
+			}
+			fmt.Println(req.Data)
+			if err := r.conn.WriteMessage(messageType, user); err != nil {
 				return err
 			}
-			fmt.Println(user)
+		case 3:
+			err := r.Update(req.Data[0].ID, data)
+			if err != nil {
+				if err:= r.conn.WriteMessage(messageType, []byte(err.Error())); err != nil {
+					log.Println(err)
+				}
+			}
+			fmt.Println(req.Data)
 
-		}
-
-		fmt.Println(req.Data)
-		if err := r.conn.WriteMessage(messageType, data); err != nil {
-			return err
+		case 4:
+			err := r.Delete(req.Data[0].ID)
+			if err != nil {
+				if err:= r.conn.WriteMessage(messageType, []byte(err.Error())); err != nil {
+					log.Println(err)
+				}
+			}
 		}
 	}
 }
