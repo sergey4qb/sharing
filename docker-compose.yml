@@ -1,0 +1,62 @@
+version: "3.7"
+
+services:
+#  ws:
+#    container_name: ws
+#    build:
+#      context: ./microservices/ws
+#      dockerfile: Dockerfile
+#    volumes:
+#      - ./microservices/ws:/usr/src/app
+#    ports:
+#      - 8080:8080
+#    working_dir: /usr/src/app
+#    command: go run .
+#    restart: unless-stopped
+#    networks:
+#      - hello-world
+#  user:
+#    container_name: user
+#    build:
+#      context: ./microservices/user
+#      dockerfile: Dockerfile
+#    volumes:
+#      - ./microservices/user:/usr/src/app
+#    ports:
+#      - 50051:50051
+#    working_dir: /usr/src/app
+#    command: go run .
+#    restart: unless-stopped
+#    networks:
+#      - hello-world
+#  order:
+#    container_name: order
+#    build:
+#      context: ./microservices/order
+#      dockerfile: Dockerfile
+#    volumes:
+#      - ./microservices/order:/usr/src/app
+#    ports:
+#      - 50053:50051
+#    working_dir: /usr/src/app
+#    command: go run .
+#    restart: unless-stopped
+#    networks:
+#      - hello-world
+  redis:
+    container_name: redis
+    image: redis:6.0
+    ports:
+      - "6379:6379"
+    networks:
+      - hello-world
+  scylladb-node1_temp:
+    container_name: scylladb-node1.0_temp
+    image: scylladb/scylla
+    command: " --smp 1 --memory 256M "
+    restart: unless-stopped
+    ports:
+      - 9042:9042
+networks:
+  hello-world:
+    driver: bridge

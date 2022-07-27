@@ -1,0 +1,32 @@
+syntax = "proto3";
+option go_package = "user/";
+import "google/protobuf/empty.proto";
+
+
+service User {
+  rpc CreateUser(UserData) returns (google.protobuf.Empty) {}
+  rpc GetUserByID(Id) returns (UserDataResponse) {}
+  rpc UpdateUserByID(UserDataUpdate) returns (google.protobuf.Empty) {}
+  rpc DeleteUserByID(Id) returns (google.protobuf.Empty) {}
+}
+
+message Id{
+  uint32 id = 1;
+}
+message UserData {
+  Id id = 1;
+  string name = 2;
+  string address = 3;
+}
+
+message UserDataResponse {
+  Id id = 1;
+  string name = 2;
+  string address = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+}
+message UserDataUpdate {
+  Id id = 1;
+  UserData data = 2;
+}
